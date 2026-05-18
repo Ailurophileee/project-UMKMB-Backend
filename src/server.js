@@ -1,5 +1,5 @@
-import 'dotenv/config';
 import server from './server/server-bersama.js';
+import 'dotenv/config';
  
 const port = process.env.PORT;
 const host = process.env.HOST;
