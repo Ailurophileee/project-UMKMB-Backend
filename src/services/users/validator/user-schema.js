@@ -1,6 +1,8 @@
+// src/services/users/validator/users-schema.js
 import Joi from 'joi';
 
-export const userPayloadSchema = Joi.object({
+export const registerPayloadSchema = Joi.object({
+  // --- Kolom Akun User ---
   username: Joi.string().trim().min(3).max(50).required().messages({
     'string.empty': 'Username tidak boleh kosong',
     'string.min': 'Username minimal terdiri dari 3 karakter',
@@ -12,10 +14,23 @@ export const userPayloadSchema = Joi.object({
     'string.min': 'Password minimal terdiri dari 6 karakter',
     'any.required': 'Password wajib diisi',
   }),
-  // MENGGANTIKAN ROLE MENJADI ID_WARUNG
-  id_warung: Joi.string().trim().required().messages({
-    'string.empty': 'ID Warung tidak boleh kosong',
-    'any.required': 'ID Warung wajib diisi',
+
+  // --- Kolom Profil Warung (Daftar Barengan) ---
+  nama_warung: Joi.string().trim().required().messages({
+    'string.empty': 'Nama warung tidak boleh kosong',
+    'any.required': 'Nama warung wajib diisi',
+  }),
+  pemilik: Joi.string().trim().required().messages({
+    'string.empty': 'Nama pemilik tidak boleh kosong',
+    'any.required': 'Nama pemilik wajib diisi',
+  }),
+  kota: Joi.string().trim().required().messages({
+    'string.empty': 'Kota tidak boleh kosong',
+    'any.required': 'Kota wajib diisi',
+  }),
+  kecamatan: Joi.string().trim().required().messages({
+    'string.empty': 'Kecamatan tidak boleh kosong',
+    'any.required': 'Kecamatan wajib diisi',
   }),
 });
 

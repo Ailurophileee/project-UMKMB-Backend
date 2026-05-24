@@ -1,11 +1,15 @@
 import { Router } from 'express';
 import { createUser, getUserById } from '../controller/user-controller.js';
 import { validate } from '../../../middlewares/validate.js';
-import { userPayloadSchema } from '../../../services/users/validator/user-schema.js';
+// PERBAIKAN: Mengimpor registerPayloadSchema (Nama file disesuaikan dengan fisik .js kamu)
+import { registerPayloadSchema } from '../validator/user-schema.js'; 
 
 const router = Router();
  
-router.post('/', validate(userPayloadSchema), createUser);
+// PERBAIKAN: Menggunakan endpoint /register dan memasang skema gabungan terbaru
+router.post('/register', validate(registerPayloadSchema), createUser);
+
+// Mengambil profil user berdasarkan id_user
 router.get('/:id', getUserById);
  
 export default router;
