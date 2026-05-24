@@ -4,7 +4,9 @@ import response from '../../../utils/response.js';
 
 export const getCashflowForecast = async (req, res, next) => {
   try {
+    // Membaca ID warung milik user yang sedang login dari muatan token JWT
     const idWarungSipemilik = req.user.id_warung; 
+
     // Kueri SQL: Mengambil arus kas bersih (Pemasukan - Pengeluaran) harian selama 30 hari terakhir
     const queryStr = `
       SELECT 
@@ -18,7 +20,6 @@ export const getCashflowForecast = async (req, res, next) => {
       LIMIT 30
     `;
 
-    // 🔥 PERBAIKAN: Mengubah 'connection.query' menjadi 'db.query' agar sesuai dengan variabel impor di atas
     db.query(queryStr, [idWarungSipemilik], async (err, results) => {
       if (err) {
         return next(err);
@@ -30,7 +31,7 @@ export const getCashflowForecast = async (req, res, next) => {
       let data30Hari = results.map(row => parseFloat(row.net_cashflow) || 0.0).reverse();
 
       // Aturan Pengaman: Jika warung baru berdiri dan belum punya 30 hari transaksi, 
-      // kita penuhi sisa array dengan angka 0.0 agar model LSTM tim AI tidak eror/crash.
+      //  penuhi sisa array dengan angka 0.0 agar model LSTM tim AI tidak eror/crash.
       while (data30Hari.length < 30) {
         data30Hari.unshift(0.0);
       }
@@ -60,10 +61,8 @@ export const getCashflowForecast = async (req, res, next) => {
         }
         // --- SELESAI LOGIKA BUFFER ZONE ---
 
-        // 🔥 KUNCI PERBAIKAN: Menyisipkan data riil historis agar ditangkap oleh Chart.js di FE
         aiResult.historis_30_hari = data30Hari;
 
-        // Kembalikan objek output yang sudah dimodifikasi ke Front-End React
         return response(res, 200, 'Prediksi cashflow berhasil digenerate oleh AI', aiResult);
       } catch (errorAI) {
         console.error('Koneksi ke server AI Python terputus:', errorAI.message);
