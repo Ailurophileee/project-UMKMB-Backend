@@ -1,5 +1,5 @@
 import axios from 'axios'; 
-import db from '../../../config/db.js'; // 🔥 Menggunakan 'db' sesuai impor kamu
+import db from '../../../config/db.js';
 import response from '../../../utils/response.js';
 
 export const getCashflowForecast = async (req, res, next) => {
