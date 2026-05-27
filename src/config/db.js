@@ -11,9 +11,8 @@ const db = mysql.createPool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT || 3306,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
+  // 💡 Buat ssl menjadi opsional atau hapus jika terjadi kendala koneksi internal
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
 // Tes koneksi ke database saat server dinyalakan
