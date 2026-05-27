@@ -6,11 +6,11 @@ dotenv.config();
 
 // Buat koneksi pool ke MySQL
 const db = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT || 3306,
+  host: process.env.MYSQLHOST,
+  user: process.env.MYSQLUSER,
+  password: process.env.MYSQLPASSWORD,
+  database: process.env.MYSQLDATABASE,
+  port: process.env.MYSQLPORT || 3306,
   // 💡 Buat ssl menjadi opsional atau hapus jika terjadi kendala koneksi internal
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
