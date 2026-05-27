@@ -1,5 +1,5 @@
 import axios from 'axios'; 
-import db from '../../../config/db.js';
+import db from '../../../config/db.js'; 
 import response from '../../../utils/response.js';
 
 export const getCashflowForecast = async (req, res, next) => {
@@ -24,6 +24,7 @@ export const getCashflowForecast = async (req, res, next) => {
       if (err) {
         return next(err);
       }
+      
       console.log("Warung yang sedang di-query:", idWarungSipemilik);
       console.log("Hasil grouping per tanggal:", results);
 
@@ -31,44 +32,44 @@ export const getCashflowForecast = async (req, res, next) => {
       let data30Hari = results.map(row => parseFloat(row.net_cashflow) || 0.0).reverse();
 
       // Aturan Pengaman: Jika warung baru berdiri dan belum punya 30 hari transaksi, 
-      //  penuhi sisa array dengan angka 0.0 agar model LSTM tim AI tidak eror/crash.
+      // kita penuhi sisa array dengan angka 0.0 agar model LSTM tidak eror/crash.
       while (data30Hari.length < 30) {
         data30Hari.unshift(0.0);
       }
 
       try {
-        const urlServerAI = 'http://127.0.0.1:8000/api/ai/cashflow-forecast';
+        // 🔥 KUNCI PERBAIKAN 1: Mengubah URL endpoint ke server AI Production yang live di Railway
+        // Sesuaikan sub-path endpoint-nya (misal: /api/ai/cashflow-forecast) dengan route asli di FastAPI Railway kalian jika berbeda
+        const urlServerAI = 'https://umkm-bersama-production.up.railway.app/api/ai/cashflow-forecast';
         
-        console.log("Jumlah data dikirim:", data30Hari.length);
+        console.log("Mengirim data 30 hari ke Railway untuk warung:", idWarungSipemilik);
+        
         const responseDariAI = await axios.post(urlServerAI, {
           data_30_hari: data30Hari
         });
 
-        // --- MULAI LOGIKA BUFFER ZONE ---
-        let aiResult = { ...responseDariAI.data }; // Salin data agar tidak merusak respons asli
-        const prediksi = aiResult.prediksi_cashflow_besok;
+        // 🔥 KUNCI PERBAIKAN 2: Mengambil respons mentah langsung dari AI Railway
+        // Karena AI sekarang mengembalikan properti: prediksi_cashflow_besok, status, peringatan, dan satuan
+        let aiResult = { ...responseDariAI.data }; 
 
-        // Logika Status Kustom (Business Logic)
-        if (prediksi >= 0) {
-          aiResult.status = "positif";
-        } else if (prediksi >= -50000) {
-          // Jika rugi kecil (0 s/d -50rb), ubah jadi status 'waspada'
-          aiResult.status = "waspada";
-          aiResult.peringatan = "Arus kas tipis! Perhatikan pengeluaran hari ini agar tidak defisit.";
-        } else {
-          // Jika rugi besar (<-50rb), tetap 'negatif'
-          aiResult.status = "negatif";
+        // Jalur pengaman tambahan jika string status dari AI menggunakan huruf kapital (misal: "Positif" -> "positif")
+        if (aiResult.status) {
+          aiResult.status = aiResult.status.toLowerCase();
         }
-        // --- SELESAI LOGIKA BUFFER ZONE ---
 
+        // 🔥 KUNCI PERBAIKAN 3: Menyisipkan data riil historis agar ditangkap oleh Chart.js di FE
         aiResult.historis_30_hari = data30Hari;
 
-        return response(res, 200, 'Prediksi cashflow berhasil digenerate oleh AI', aiResult);
+        console.log("Hasil prediksi sukses dari Railway:", aiResult);
+
+        // Kembalikan objek output yang bersih ke Front-End React
+        return response(res, 200, 'Prediksi cashflow berhasil digenerate oleh AI di Railway', aiResult);
+        
       } catch (errorAI) {
-        console.error('Koneksi ke server AI Python terputus:', errorAI.message);
+        console.error('Koneksi ke server AI Railway bermasalah:', errorAI.message);
         return res.status(502).json({
           status: 'fail',
-          message: 'Gagal terhubung dengan server analisis AI. Pastikan server Python tim AI sudah dinyalakan.'
+          message: 'Gagal mendapatkan analisis dari server AI Railway. Pastikan layanan di cloud sudah aktif.'
         });
       }
     });

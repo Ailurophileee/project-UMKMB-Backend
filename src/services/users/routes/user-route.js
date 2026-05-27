@@ -7,7 +7,7 @@ import { registerPayloadSchema } from '../validator/user-schema.js';
 const router = Router();
  
 // PERBAIKAN: Menggunakan endpoint /register dan memasang skema gabungan terbaru
-router.post('/register', validate(registerPayloadSchema), createUser);
+router.post('/', validate(registerPayloadSchema), createUser);
 
 // Mengambil profil user berdasarkan id_user
 router.get('/:id', getUserById);
