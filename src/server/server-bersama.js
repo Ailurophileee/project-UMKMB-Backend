@@ -1,24 +1,22 @@
 import express from 'express';
-import cors from 'cors'; // Pastikan cors di-import paling atas
+import cors from 'cors';
 import routes from '../routes/route-bersama.js';
 import ErrorHandler from '../middlewares/error.js';
 
 const app = express();
 
-// 1. Definisikan opsi CORS secara spesifik
 const corsOptions = {
-  origin: 'https://project-umkmb-frontend.vercel.app', // Hanya izinkan domain vercel kamu
+  origin: '*', 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  optionsSuccessStatus: 200 // Menangani browser lama atau case tertentu
+  optionsSuccessStatus: 200 
 };
 
-// 2. Pasang middleware CORS untuk semua request
 app.use(cors(corsOptions));
 
-// 3. PENTING: Langsung potong & jawab sukses jika ada request bertipe OPTIONS (Preflight)
-app.options('*', cors(corsOptions));
+// PANDUAN EXPRESS 5: Gunakan (.*) bukan * telanjang
+app.options('(.*)', cors(corsOptions));
 
 app.use(express.json());
 app.use(routes);
