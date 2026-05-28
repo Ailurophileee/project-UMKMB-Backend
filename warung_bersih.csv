@@ -1,0 +1,6 @@
+id_warung,nama_warung,pemilik,kota,kecamatan,tanggal_daftar,status
+WRG-001,Toko Sembako Bu Sari,Sari Wulandari,Yogyakarta,Gondokusuman,2025-07-23,Aktif
+WRG-002,Warung Kelontong Pak Budi,Budi Santoso,Sleman,Depok,2025-08-25,Aktif
+WRG-003,Toko Mbak Rina,Rina Astuti,Bantul,Kasihan,2025-08-31,Aktif
+WRG-004,Sembako Mas Joko,Joko Purnomo,Kulon Progo,Wates,2025-07-16,Aktif
+WRG-005,Toko Hendra Jaya,Hendra Wijaya,Gunungkidul,Wonosari,2025-08-15,Aktif

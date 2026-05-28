@@ -1,0 +1,121 @@
+id_produk,id_warung,nama_produk,harga_jual,harga_pokok,kategori_produk,status
+PRD-001-001,WRG-001,Telur 1/4kg,8000,6800,Sembako,Aktif
+PRD-001-002,WRG-001,Gula Pasir 1kg,17000,14500,Sembako,Aktif
+PRD-001-003,WRG-001,Rinso 800gr,22000,17500,Kebersihan,Aktif
+PRD-001-004,WRG-001,Minyak Goreng 2L,34000,29500,Sembako,Aktif
+PRD-001-005,WRG-001,Sabun Lifebuoy 85gr,5000,3500,Kebersihan,Aktif
+PRD-001-006,WRG-001,Rokok Gudang Garam 12,25000,22500,Rokok,Aktif
+PRD-001-007,WRG-001,Teh Botol 350ml,5000,3500,Minuman,Aktif
+PRD-001-008,WRG-001,Minyak Goreng 1L,18000,15500,Sembako,Aktif
+PRD-001-009,WRG-001,Pocari Sweat 500ml,9000,7000,Minuman,Aktif
+PRD-001-010,WRG-001,Oreo 137gr,12000,9500,Mie & Snack,Aktif
+PRD-001-011,WRG-001,Beras 10kg,145000,126000,Sembako,Aktif
+PRD-001-012,WRG-001,Beras 5kg,75000,65000,Sembako,Aktif
+PRD-001-013,WRG-001,Tisu Paseo 250 lembar,8000,6000,Kebersihan,Aktif
+PRD-001-014,WRG-001,Telur 1kg,28000,24500,Sembako,Aktif
+PRD-001-015,WRG-001,Rokok Surya 16,22000,19800,Rokok,Aktif
+PRD-001-016,WRG-001,Kopi Kapal Api Sachet,2000,1400,Minuman,Aktif
+PRD-001-017,WRG-001,Garam 250gr,3500,2000,Sembako,Aktif
+PRD-001-018,WRG-001,Gas LPG 3kg,22000,19000,Gas & Energi,Aktif
+PRD-001-019,WRG-001,Mie Sedaap Goreng,3500,2600,Mie & Snack,Nonaktif
+PRD-001-020,WRG-001,Indomie Kuah,3500,2700,Mie & Snack,Aktif
+PRD-001-021,WRG-001,Supermi 1 dus (40pcs),95000,78000,Mie & Snack,Aktif
+PRD-002-001,WRG-002,Kopi Kapal Api Sachet,2000,1400,Minuman,Aktif
+PRD-002-002,WRG-002,Rokok Gudang Garam 12,25000,22500,Rokok,Aktif
+PRD-002-003,WRG-002,Gas LPG 3kg,22000,19000,Gas & Energi,Aktif
+PRD-002-004,WRG-002,Mie Sedaap Goreng,3500,2600,Mie & Snack,Aktif
+PRD-002-005,WRG-002,Pocari Sweat 500ml,9000,7000,Minuman,Nonaktif
+PRD-002-006,WRG-002,Telur 1kg,28000,24500,Sembako,Aktif
+PRD-002-007,WRG-002,Shampo Sunsilk Sachet,1000,650,Kebersihan,Aktif
+PRD-002-008,WRG-002,Minyak Goreng 1L,18000,15500,Sembako,Aktif
+PRD-002-009,WRG-002,Beras 10kg,145000,126000,Sembako,Aktif
+PRD-002-010,WRG-002,Sabun Lifebuoy 85gr,5000,3500,Kebersihan,Aktif
+PRD-002-011,WRG-002,Telur 1/4kg,8000,6800,Sembako,Aktif
+PRD-002-012,WRG-002,Indomie Goreng,3500,2700,Mie & Snack,Aktif
+PRD-002-013,WRG-002,Rinso 800gr,22000,17500,Kebersihan,Aktif
+PRD-002-014,WRG-002,Susu Kental Manis 385g,14000,11500,Minuman,Aktif
+PRD-002-015,WRG-002,Minyak Goreng 2L,34000,29500,Sembako,Aktif
+PRD-002-016,WRG-002,Chitato 68gr,10000,7800,Mie & Snack,Aktif
+PRD-002-017,WRG-002,Gula Pasir 1kg,17000,14500,Sembako,Aktif
+PRD-002-018,WRG-002,Teh Botol 350ml,5000,3500,Minuman,Aktif
+PRD-002-019,WRG-002,Indomie Kuah,3500,2700,Mie & Snack,Aktif
+PRD-002-020,WRG-002,Tepung Terigu 1kg,12000,10000,Sembako,Aktif
+PRD-002-021,WRG-002,Pembalut Laurier,15000,11000,Kebersihan,Aktif
+PRD-002-022,WRG-002,Rokok Sampoerna 16,28000,25500,Rokok,Aktif
+PRD-002-023,WRG-002,Rokok Surya 16,22000,19800,Rokok,Aktif
+PRD-002-024,WRG-002,Aqua 1500ml,7000,5000,Minuman,Aktif
+PRD-002-025,WRG-002,Garam 250gr,3500,2000,Sembako,Aktif
+PRD-002-026,WRG-002,Aqua 600ml,4000,2800,Minuman,Aktif
+PRD-002-027,WRG-002,Beras 5kg,75000,65000,Sembako,Aktif
+PRD-002-028,WRG-002,Sunlight 200ml,8000,6000,Kebersihan,Aktif
+PRD-003-001,WRG-003,Telur 1/4kg,8000,6800,Sembako,Aktif
+PRD-003-002,WRG-003,Gula Pasir 1kg,17000,14500,Sembako,Aktif
+PRD-003-003,WRG-003,Aqua 1500ml,7000,5000,Minuman,Aktif
+PRD-003-004,WRG-003,Aqua 600ml,4000,2800,Minuman,Aktif
+PRD-003-005,WRG-003,Minyak Goreng 1L,18000,15500,Sembako,Aktif
+PRD-003-006,WRG-003,Sunlight 200ml,8000,6000,Kebersihan,Aktif
+PRD-003-007,WRG-003,Beras 10kg,145000,126000,Sembako,Aktif
+PRD-003-008,WRG-003,Minyak Goreng 2L,34000,29500,Sembako,Aktif
+PRD-003-009,WRG-003,Rokok Sampoerna 16,28000,25500,Rokok,Nonaktif
+PRD-003-010,WRG-003,Susu Kental Manis 385g,14000,11500,Minuman,Aktif
+PRD-003-011,WRG-003,Tepung Terigu 1kg,12000,10000,Sembako,Aktif
+PRD-003-012,WRG-003,Oreo 137gr,12000,9500,Mie & Snack,Aktif
+PRD-003-013,WRG-003,Pembalut Laurier,15000,11000,Kebersihan,Aktif
+PRD-003-014,WRG-003,Chitato 68gr,10000,7800,Mie & Snack,Aktif
+PRD-003-015,WRG-003,Teh Botol 350ml,5000,3500,Minuman,Aktif
+PRD-003-016,WRG-003,Supermi 1 dus (40pcs),95000,78000,Mie & Snack,Aktif
+PRD-003-017,WRG-003,Garam 250gr,3500,2000,Sembako,Aktif
+PRD-003-018,WRG-003,Shampo Sunsilk Sachet,1000,650,Kebersihan,Aktif
+PRD-003-019,WRG-003,Gas LPG 3kg,22000,19000,Gas & Energi,Nonaktif
+PRD-003-020,WRG-003,Beras 5kg,75000,65000,Sembako,Nonaktif
+PRD-003-021,WRG-003,Indomie Kuah,3500,2700,Mie & Snack,Aktif
+PRD-003-022,WRG-003,Tisu Paseo 250 lembar,8000,6000,Kebersihan,Aktif
+PRD-003-023,WRG-003,Rokok Gudang Garam 12,25000,22500,Rokok,Aktif
+PRD-004-001,WRG-004,Rokok Sampoerna 16,28000,25500,Rokok,Aktif
+PRD-004-002,WRG-004,Mie Sedaap Goreng,3500,2600,Mie & Snack,Aktif
+PRD-004-003,WRG-004,Rokok Gudang Garam 12,25000,22500,Rokok,Aktif
+PRD-004-004,WRG-004,Pembalut Laurier,15000,11000,Kebersihan,Nonaktif
+PRD-004-005,WRG-004,Tisu Paseo 250 lembar,8000,6000,Kebersihan,Nonaktif
+PRD-004-006,WRG-004,Indomie Goreng,3500,2700,Mie & Snack,Aktif
+PRD-004-007,WRG-004,Telur 1/4kg,8000,6800,Sembako,Aktif
+PRD-004-008,WRG-004,Beras 10kg,145000,126000,Sembako,Aktif
+PRD-004-009,WRG-004,Sunlight 200ml,8000,6000,Kebersihan,Aktif
+PRD-004-010,WRG-004,Pocari Sweat 500ml,9000,7000,Minuman,Aktif
+PRD-004-011,WRG-004,Minyak Goreng 1L,18000,15500,Sembako,Aktif
+PRD-004-012,WRG-004,Susu Kental Manis 385g,14000,11500,Minuman,Aktif
+PRD-004-013,WRG-004,Aqua 600ml,4000,2800,Minuman,Aktif
+PRD-004-014,WRG-004,Kopi Kapal Api Sachet,2000,1400,Minuman,Aktif
+PRD-004-015,WRG-004,Gula Pasir 1kg,17000,14500,Sembako,Aktif
+PRD-004-016,WRG-004,Aqua 1500ml,7000,5000,Minuman,Aktif
+PRD-004-017,WRG-004,Indomie Kuah,3500,2700,Mie & Snack,Aktif
+PRD-004-018,WRG-004,Shampo Sunsilk Sachet,1000,650,Kebersihan,Aktif
+PRD-004-019,WRG-004,Garam 250gr,3500,2000,Sembako,Aktif
+PRD-005-001,WRG-005,Susu Kental Manis 385g,14000,11500,Minuman,Aktif
+PRD-005-002,WRG-005,Beras 10kg,145000,126000,Sembako,Aktif
+PRD-005-003,WRG-005,Telur 1/4kg,8000,6800,Sembako,Aktif
+PRD-005-004,WRG-005,Minyak Goreng 1L,18000,15500,Sembako,Aktif
+PRD-005-005,WRG-005,Rokok Sampoerna 16,28000,25500,Rokok,Aktif
+PRD-005-006,WRG-005,Indomie Kuah,3500,2700,Mie & Snack,Aktif
+PRD-005-007,WRG-005,Gas LPG 3kg,22000,19000,Gas & Energi,Aktif
+PRD-005-008,WRG-005,Aqua 1500ml,7000,5000,Minuman,Aktif
+PRD-005-009,WRG-005,Rokok Gudang Garam 12,25000,22500,Rokok,Aktif
+PRD-005-010,WRG-005,Garam 250gr,3500,2000,Sembako,Aktif
+PRD-005-011,WRG-005,Aqua 600ml,4000,2800,Minuman,Aktif
+PRD-005-012,WRG-005,Telur 1kg,28000,24500,Sembako,Aktif
+PRD-005-013,WRG-005,Teh Botol 350ml,5000,3500,Minuman,Aktif
+PRD-005-014,WRG-005,Gula Pasir 1kg,17000,14500,Sembako,Aktif
+PRD-005-015,WRG-005,Rokok Surya 16,22000,19800,Rokok,Aktif
+PRD-005-016,WRG-005,Shampo Sunsilk Sachet,1000,650,Kebersihan,Aktif
+PRD-005-017,WRG-005,Chitato 68gr,10000,7800,Mie & Snack,Aktif
+PRD-005-018,WRG-005,Rinso 800gr,22000,17500,Kebersihan,Aktif
+PRD-005-019,WRG-005,Supermi 1 dus (40pcs),95000,78000,Mie & Snack,Aktif
+PRD-005-020,WRG-005,Kopi Kapal Api Sachet,2000,1400,Minuman,Aktif
+PRD-005-021,WRG-005,Minyak Goreng 2L,34000,29500,Sembako,Aktif
+PRD-005-022,WRG-005,Pembalut Laurier,15000,11000,Kebersihan,Aktif
+PRD-005-023,WRG-005,Indomie Goreng,3500,2700,Mie & Snack,Aktif
+PRD-005-024,WRG-005,Mie Sedaap Goreng,3500,2600,Mie & Snack,Aktif
+PRD-005-025,WRG-005,Sunlight 200ml,8000,6000,Kebersihan,Aktif
+PRD-005-026,WRG-005,Tisu Paseo 250 lembar,8000,6000,Kebersihan,Aktif
+PRD-005-027,WRG-005,Tepung Terigu 1kg,12000,10000,Sembako,Aktif
+PRD-005-028,WRG-005,Pocari Sweat 500ml,9000,7000,Minuman,Aktif
+PRD-005-029,WRG-005,Oreo 137gr,12000,9500,Mie & Snack,Aktif
