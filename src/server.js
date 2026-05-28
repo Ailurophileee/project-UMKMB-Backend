@@ -14,6 +14,6 @@ const port = process.env.PORT || 5000;
 
 // ✅ Hapus atau jangan pasang host di dalam server.listen agar Express otomatis
 // melakukan binding ke jaringan publik kontainer Render (0.0.0.0)
-server.listen(port, () => {
+server.listen(port, '0.0.0.0', () => {
   console.log(`🚀 Server backend UMKM berhasil berjalan di port: ${port}`);
 });
