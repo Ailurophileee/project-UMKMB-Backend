@@ -8,12 +8,14 @@ export const getAIAdvisory = async (req, res, next) => {
 
     // Ambil Data Historis Arus Kas 30 Hari Terakhir
     const queryKasStr = `
-      SELECT DATE(tanggal) as tgl, 
-             SUM(pemasukan) - SUM(pengeluaran) as net_cashflow 
-      FROM transaksi 
-      WHERE id_warung = ? 
-      GROUP BY DATE(tanggal) 
-      ORDER BY DATE(tanggal) DESC 
+      SELECT 
+        tanggal,
+        SUM(CASE WHEN jenis = 'Pemasukan' THEN nominal ELSE 0 END) - 
+        SUM(CASE WHEN jenis = 'Pengeluaran' THEN nominal ELSE 0 END) AS net_cashflow
+      FROM transaksi
+      WHERE id_warung = ?
+      GROUP BY tanggal
+      ORDER BY tanggal DESC
       LIMIT 30
     `;
 
@@ -30,13 +32,18 @@ export const getAIAdvisory = async (req, res, next) => {
 
       // Ambil Data Performa Produk untuk BCG Matrix
       const queryProdukStr = `
-        SELECT p.id_produk, p.nama_produk, p.harga_jual, p.harga_pokok,
-               COALESCE(SUM(dp.quantity), 0) as qty_terjual
-        FROM produk p
-        LEFT JOIN detail_penjualan dp ON p.id_produk = dp.id_produk
-        WHERE p.id_warung = ?
-        GROUP BY p.id_produk, p.nama_produk, p.harga_jual, p.harga_pokok
-      `;
+      SELECT 
+        p.id_produk,
+        p.nama_produk,
+        p.harga_jual,
+        p.harga_pokok,
+        SUM(t.qty) AS qty_terjual
+      FROM produk p
+      INNER JOIN transaksi t ON p.id_produk = t.id_produk 
+      WHERE p.id_warung = ? AND t.jenis = 'Pemasukan'
+      GROUP BY p.id_produk, p.nama_produk, p.harga_jual, p.harga_pokok
+      HAVING qty_terjual > 0
+    `;
 
       db.query(queryProdukStr, [idWarungSipemilik], async (errProd, resultsProd) => {
         if (errProd) return next(errProd);
