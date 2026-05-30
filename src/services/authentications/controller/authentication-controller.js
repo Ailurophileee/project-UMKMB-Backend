@@ -13,7 +13,11 @@ export const login = async (req, res, next) => {
     const user = await userRepositories.verifyUserCredential(username, password);
    
     if (!user) {
-      return next(new AuthenticationError('Kredensial yang Anda berikan salah'));
+      //return next(new AuthenticationError('Kredensial yang Anda berikan salah'));
+      return res.status(200).json({
+        status: 'fail',
+        message: 'Gagal masuk. Periksa kembali username dan password kamu!'
+      });
     }
    
     const tokenPayload = { 
