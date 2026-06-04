@@ -7,6 +7,15 @@ export const getAnomalyAlert = async (req, res, next) => {
     // Membaca ID warung milik user yang sedang login dari muatan token JWT
     const idWarungSipemilik = req.user.id_warung; 
 
+    //hari_dalam_minggu = tanggal.dt.dayofweek (0=Senin, 6=Minggu)
+    //id_transaksi
+    //jam_encoded = jam_transaksi.hour (0-23)
+    //kategori
+    //nominal
+    //rasio_vs_baseline
+    // -> Rolling mean 7 hari per kategori per warung sebagai baseline
+    // -> Rasio nominal terhadap rolling mean (seberapa jauh dari baseline)
+    //rolling_mean_7d = nominal.rolling(7).mean() per kategori
     const queryStr = `
       SELECT
         id_transaksi,
@@ -27,21 +36,22 @@ export const getAnomalyAlert = async (req, res, next) => {
         ) as rolling_mean_7d
       FROM transaksi t1
       WHERE t1.id_warung = ? AND t1.jenis = 'Pengeluaran'
-      ORDER BY t1.tanggal ASC -- Sudah benar ASC agar searah garis waktu data tim DS
+      ORDER BY t1.tanggal DESC
     `;
 
     db.query(queryStr, [idWarungSipemilik], async (err, results) => {
       if (err) return next(err);
 
       if (!results || results.length === 0) {
-        return response(res, 200, 'Belum ada data transaksi pengeluaran untuk dianalisis.', { hasil: [], total_anomali: 0 });
+        return response(res, 200, 'Belum ada data transaksi pengeluaran untuk dianalisis.', { anomali: [] });
       }
       
-      // format dan hitung rasio terhadap baseline sesuai keinginan TIM AI
+      //format dan hitung rasio terhadap baseline sesuai keinginan TIM AI
       const transaksiFormatted = results.map(row => {
         const nominal = parseFloat(row.nominal) || 0;
-        const rollingMean = parseFloat(row.rolling_mean_7d) || nominal; 
+        const rollingMean = parseFloat(row.rolling_mean_7d) || nominal; // fallback ke nominal sendiri jika data < 7
         
+        // Rasio nominal terhadap rolling mean (seberapa jauh dari baseline)
         const rasioVsBaseline = rollingMean > 0 ? parseFloat((nominal / rollingMean).toFixed(2)) : 1.0;
 
         return {
@@ -64,15 +74,9 @@ export const getAnomalyAlert = async (req, res, next) => {
           transaksi: transaksiFormatted
         });
 
+        // Tangkap output murni array status normal/anomali + pesan peringatan dari AI
         let aiAnomalyResult = responseDariAI.data;
         console.log(`[Anomaly] Audit Sukses. Terproses: ${aiAnomalyResult.total_transaksi || 0}, Terdeteksi Anomali: ${aiAnomalyResult.total_anomali || 0}`);
-
-        // ✅ KUNCI PENYELAMAT FRONTEND:
-        // Jika AI mengembalikan properti "hasil" dalam bentuk array, kita balik (.reverse())
-        // supaya transaksi pengeluaran terbaru muncul paling atas di tabel web!
-        if (aiAnomalyResult && Array.isArray(aiAnomalyResult.hasil)) {
-          aiAnomalyResult.hasil = aiAnomalyResult.hasil.reverse();
-        }
 
         return response(res, 200, 'Analisis anomali transaksi berhasil diproses oleh AI', aiAnomalyResult);
        
