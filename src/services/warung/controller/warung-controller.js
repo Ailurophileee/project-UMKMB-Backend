@@ -11,7 +11,6 @@ export const createWarung = async (req, res, next) => {
       ...req.validated,
     };
 
-    // PERBAIKAN: Mengubah nama fungsi repo dari createProduct menjadi createWarung
     const warung = await warungRepositories.createWarung(payload);
 
     return response(res, 201, 'Warung berhasil ditambahkan', {
@@ -25,7 +24,6 @@ export const createWarung = async (req, res, next) => {
 // 2. GET ALL WARUNG
 export const getWarungs = async (req, res, next) => {
   try {
-    // PERBAIKAN: Mengubah productRepositories.findAllProducts() menjadi warungRepositories.findAllWarungs()
     const warungs = await warungRepositories.findAllWarungs();
 
     return response(res, 200, 'Data warung berhasil diambil', { warungs });
@@ -34,7 +32,6 @@ export const getWarungs = async (req, res, next) => {
   }
 };
 
-// ✅ PERBAIKAN TOTAL FUNGSI GET DETAIL DI BE
 export const getWarungById = async (req, res, next) => {
   try {
     const { id } = req.params; 
@@ -56,10 +53,9 @@ export const getWarungById = async (req, res, next) => {
 
 export const updateWarung = async (req, res, next) => {
   try {
-    const { id } = req.params; // ID warung yang mau diedit dari URL (ex: WRG-002)
-    const idWarungSipemilik = req.user.id_warung; // 🔥 ID warung asli si pemilik dari Token JWT (ex: WRG-001)
+    const { id } = req.params; 
+    const idWarungSipemilik = req.user.id_warung;
     
-    // 🛡️ PINTU PENGAMAN: Jika ID di URL tidak sama dengan ID di token, TOLAK LANGSUNG!
     if (id !== idWarungSipemilik) {
       return res.status(403).json({
         status: 'fail',

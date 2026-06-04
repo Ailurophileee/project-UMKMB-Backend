@@ -22,11 +22,11 @@ router.get('/', authenticateToken, getTransaksiHistory);
 // 3. Melihat ringkasan kalkulasi dashboard widget
 router.get('/summary', authenticateToken, getDashboardSummary);
 
-// 4. 🔥 Mengubah data transaksi lama berdasarkan id_transaksi
+// 4. Mengubah data transaksi lama berdasarkan id_transaksi
 // Menggunakan validator schema yang sama agar data inputan baru tetap terjaga kualitasnya
 router.put('/:id', authenticateToken, validate(transaksiPayloadSchema), editTransaksi);
 
-// 5. 🔥 Menghapus data transaksi
+// 5. Menghapus data transaksi
 router.delete('/:id', authenticateToken, removeTransaksi);
 
 export default router;

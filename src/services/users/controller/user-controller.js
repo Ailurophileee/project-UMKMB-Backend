@@ -31,7 +31,6 @@ export const createUser = async (req, res, next) => {
       return next(new InvariantError('Gagal memproses data usaha warung.'));
     }
 
-    // 🔥 DI SINI KITA MENANGKAP ID_WARUNG YANG BARU DI-RESOLVE OLEH REPO WARUNG
     const idWarungTerbentuk = warung.id_warung;
 
     // 4. JALANKAN ESTAFET 2: Kirim data akun beserta id_warung ke MySQL repository user

@@ -68,20 +68,15 @@ export const getAnomalyAlert = async (req, res, next) => {
       try {
         const urlServerAI = 'https://umkm-bersama-production.up.railway.app/api/ai/anomaly';
 
-        console.log(`[Anomaly] Mengirim data ${transaksiFormatted.length} pengeluaran ke Railway...`);
 
         const responseDariAI = await axios.post(urlServerAI, {
           transaksi: transaksiFormatted
         });
 
-        // Tangkap output murni array status normal/anomali + pesan peringatan dari AI
         let aiAnomalyResult = responseDariAI.data;
-        console.log(`[Anomaly] Audit Sukses. Terproses: ${aiAnomalyResult.total_transaksi || 0}, Terdeteksi Anomali: ${aiAnomalyResult.total_anomali || 0}`);
-
         return response(res, 200, 'Analisis anomali transaksi berhasil diproses oleh AI', aiAnomalyResult);
        
       } catch (errorAI) {
-        console.error('Koneksi ke server AI Railway bermasalah:', errorAI.message);
         return res.status(502).json({
           status: 'fail',
           message: 'Gagal mendapatkan analisis dari server AI Railway. Pastikan layanan di cloud sudah aktif.'

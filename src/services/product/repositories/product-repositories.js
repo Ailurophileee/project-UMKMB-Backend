@@ -2,7 +2,7 @@
 import db from '../../../config/db.js';
 
 class ProductRepository {
-  // 1. AMBIL SEMUA PRODUK (Sudah Sempurna!)
+  // 1. AMBIL SEMUA PRODUK
   async findAllProducts(id_warung) {
     return new Promise((resolve, reject) => {
       const query = 'SELECT * FROM produk WHERE id_warung = ?';
@@ -20,7 +20,6 @@ class ProductRepository {
   // 2. TAMBAH PRODUK BARU + AUTO GENERATE ID (PRD-NNN-NNN) Berbasis ID Warung Asli
   async createProduct(payload) {
     return new Promise((resolve, reject) => {
-      // 🔥 PERBAIKAN: Ambil id_warung asli dari payload kiriman controller
       const { id_warung, nama_produk, harga_jual, harga_pokok, kategori_produk, status } = payload;
       
       // Ambil angka tengah/kode dari ID warung (Contoh: 'WRG-002' -> diambil '002')
@@ -36,7 +35,7 @@ class ProductRepository {
 
         // Jika warung ini sudah memiliki produk, naikkan nomor urut terakhirnya + 1
         if (results.length > 0) {
-          const lastId = results[0].id_produk; // Contoh: "PRD-002-005"
+          const lastId = results[0].id_produk;
           const lastNumber = parseInt(lastId.split('-')[2]); // Ambil angka paling belakang "005" -> 5
           nextProductNumber = lastNumber + 1;
         }

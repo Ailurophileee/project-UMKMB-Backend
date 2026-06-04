@@ -6,7 +6,6 @@ import InvariantError from '../../../exceptions/invariant-error.js';
 // 1. TAMBAH TRANSAKSI BARU
 export const createTransaksi = async (req, res, next) => {
   try {
-    // 👑 AMBIL OTOMATIS ID WARUNG DARI JWT TOKEN
     const id_warung = req.user.id_warung;
 
     // Gabungkan data inputan yang lolos Joi dengan id_warung asli dari sistem
@@ -26,8 +25,8 @@ export const createTransaksi = async (req, res, next) => {
         id_transaksi: result.id_transaksi, 
         id_warung: id_warung,
         id_produk: req.validated.id_produk || null,
-        tanggal: result.tanggal,           // 🔥 PERBAIKAN: Ambil murni dari hasil repo
-        jam_transaksi: result.jam_transaksi, // 🔥 PERBAIKAN: Ambil murni dari hasil repo
+        tanggal: result.tanggal,          
+        jam_transaksi: result.jam_transaksi, 
         jenis: req.validated.jenis,
         kategori: req.validated.kategori,
         nominal: req.validated.nominal,
@@ -44,7 +43,6 @@ export const createTransaksi = async (req, res, next) => {
 // 2. GET ALL TRANSAKSI (KHUSUS WARUNG YANG SEDANG LOGIN)
 export const getTransaksiHistory = async (req, res, next) => {
   try {
-    // 👑 KUNCI DATA: Hanya ambil transaksi milik warung yang sedang login
     const id_warung = req.user.id_warung;
 
     const history = await transaksiRepositories.findAllTransaksiByWarung(id_warung);
@@ -70,10 +68,6 @@ export const getDashboardSummary = async (req, res, next) => {
   }
 };
 
-// src/services/transaksi/controller/transaksi-controller.js
-// (Pastikan instance repositori kamu sudah di-import di atas, misal: const repo = new TransaksiRepository())
-
-// src/services/transaksi/controller/transaksi-controller.js
 
 export const editTransaksi = async (req, res) => {
   try {
@@ -81,7 +75,6 @@ export const editTransaksi = async (req, res) => {
     const id_warung = req.user.id_warung; 
     const updateData = req.body;
 
-    // 🔥 PERBAIKAN: Langsung panggil variabel objek default transaksiRepositories dari atas file
     const affectedRows = await transaksiRepositories.updateTransaksi(id, id_warung, updateData);
 
     if (affectedRows === 0) {
@@ -100,7 +93,6 @@ export const removeTransaksi = async (req, res) => {
     const { id } = req.params;
     const id_warung = req.user.id_warung;
 
-    // 🔥 PERBAIKAN: Langsung panggil variabel objek default transaksiRepositories dari atas file
     const affectedRows = await transaksiRepositories.deleteTransaksi(id, id_warung);
 
     if (affectedRows === 0) {

@@ -8,7 +8,6 @@ export const getBCGMatrix = async (req, res, next) => {
     const idWarungSipemilik = req.user.id_warung; 
 
     // 2. Kueri SQL: Mengambil data performa produk dari database
-    // Kueri SQL Perbaikan: Hanya mengambil produk yang qty_terjual > 0
     const queryStr = `
       SELECT 
         p.id_produk,

@@ -67,7 +67,6 @@ class TransaksiRepository {
 async getTransaksiSummary(id_warung) {
   return new Promise((resolve, reject) => {
     
-    // 🔥 PERBAIKAN 1: Ganti nama_pemilik menjadi pemilik sesuai kolom database kamu
     const queryWarung = `SELECT pemilik FROM warung WHERE id_warung = ?`;
 
     const queryKalkulasi = `
@@ -109,7 +108,6 @@ async getTransaksiSummary(id_warung) {
           db.query(queryPengeluaranTerbesar, [id_warung], (err, resPengeluaran) => {
             if (err) return reject(err);
 
-            // 🔥 PERBAIKAN 2: Sesuaikan objek fallback menggunakan properti pemilik
             const infoWarung = resWarung[0] || { pemilik: 'Owner' };
             const kalkulasi = resKalkulasi[0] || { total_pemasukan: 0, total_pengeluaran: 0 };
             const produkTerlaris = resProduk[0] || { nama_produk: 'Belum ada data', total_qty: 0 };
@@ -119,7 +117,7 @@ async getTransaksiSummary(id_warung) {
             const pengeluaran = parseInt(kalkulasi.total_pengeluaran) || 0;
 
             resolve({
-              nama_pemilik: infoWarung.pemilik, // 🔥 Sekarang mengambil data dari kolom pemilik dengan aman!
+              nama_pemilik: infoWarung.pemilik,
               total_pemasukan: pemasukan,
               total_pengeluaran: pengeluaran,
               laba_bersih: pemasukan - pengeluaran,
@@ -134,7 +132,6 @@ async getTransaksiSummary(id_warung) {
   });
 }
 
-// src/services/transaksi/repositories/transaksi-repositories.js
 
 async updateTransaksi(id_transaksi, id_warung, data) {
   return new Promise((resolve, reject) => {

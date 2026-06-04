@@ -56,7 +56,6 @@ export const refreshToken = async (req, res, next) => {
       return next(new InvariantError('Refresh token tidak ditemukan di database'));
     }
    
-    // 🔥 PERBAIKAN: Membungkus verifikasi JWT agar jika token cacat/expired tidak membuat app crash
     let decoded;
     try {
       decoded = TokenManager.verifyRefreshToken(refreshToken);

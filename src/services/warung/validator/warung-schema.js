@@ -2,7 +2,6 @@ import Joi from 'joi';
 
 // 1. SKEMA UNTUK CREATE WARUNG (Menerima input dari form registrasi FE)
 export const warungPayloadSchema = Joi.object({
-  // Diturunkan menjadi opsional karena ID digenerate otomatis oleh Backend sebelum masuk DB
  id_warung: Joi.string()
   .pattern(/^WRG-\d{3}$/) // \d{3} memastikan tepat harus 3 digit angka (0-9)
   .optional()

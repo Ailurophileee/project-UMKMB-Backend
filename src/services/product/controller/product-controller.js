@@ -6,7 +6,6 @@ import { productPayloadSchema, updateProductPayloadSchema } from '../validator/p
 // 1. CREATE PRODUCT
 export const createProduct = async (req, res, next) => {
   try {
-    // 🔥 PERBAIKAN: Ambil id_warung langsung dari token JWT (req.user)
     const id_warung = req.user.id_warung;
 
     // Masukkan data validasi Joi bersama dengan id_warung yang murni dari sistem
@@ -28,7 +27,6 @@ export const createProduct = async (req, res, next) => {
 // 2. GET ALL PRODUCTS
 export const getProducts = async (req, res, next) => {
   try {
-    // 🔥 PERBAIKAN: Ambil id_warung dari token agar toko hanya bisa melihat produk miliknya sendiri
     const id_warung = req.user.id_warung;
 
     // Oper id_warung ke fungsi pencari di repository (Kueri DB: SELECT * FROM produk WHERE id_warung = ?)
@@ -48,7 +46,6 @@ export const getProductById = async (req, res, next) => {
 
     const product = await productRepositories.getProductById(id);
 
-    // 🛡️ PINTU PENGAMAN 1: Cek apakah produknya eksis dan benar milik warung yang bersangkutan
     if (!product || product.id_warung !== id_warung) {
       return next(new NotFoundError('Produk tidak ditemukan atau Anda tidak memiliki akses'));
     }
@@ -68,13 +65,12 @@ export const updateProduct = async (req, res, next) => {
     // Ambil data produk lama
     const existingProduct = await productRepositories.getProductById(id);
     
-    // 🛡️ PINTU PENGAMAN 2: Tolak jika produk bukan kepunyaan warung yang sedang login
     if (!existingProduct || existingProduct.id_warung !== id_warung) {
       return next(new NotFoundError('Produk tidak ditemukan atau Anda tidak memiliki hak akses mengubahnya'));
     }
 
     const mergedPayload = {
-      id_warung: id_warung, // 🔥 DIKUNCI: Tetap pakai id_warung dari token, bukan dari req.body bebas
+      id_warung: id_warung, 
       nama_produk: req.body.nama_produk !== undefined ? req.body.nama_produk : existingProduct.nama_produk,
       harga_jual: req.body.harga_jual !== undefined ? Number(req.body.harga_jual) : existingProduct.harga_jual,
       harga_pokok: req.body.harga_pokok !== undefined ? Number(req.body.harga_pokok) : existingProduct.harga_pokok,
@@ -107,7 +103,6 @@ export const deleteProduct = async (req, res, next) => {
     
     const existingProduct = await productRepositories.getProductById(id);
     
-    // 🛡️ PINTU PENGAMAN 3: Pastikan yang menghapus produk adalah pemilik aslinya
     if (!existingProduct || existingProduct.id_warung !== id_warung) {
       return next(new NotFoundError('Produk tidak ditemukan atau Anda tidak memiliki hak akses menghapusnya'));
     }

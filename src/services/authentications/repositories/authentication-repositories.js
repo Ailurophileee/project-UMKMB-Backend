@@ -5,7 +5,6 @@ class AuthenticationRepositories {
   // 1. MENYIMPAN REFRESH TOKEN BARU
   async addRefreshToken(token) {    
     return new Promise((resolve, reject) => {
-      // Di MySQL, kita biarkan id_auth AUTO_INCREMENT otomatis di tabel nanti, atau pakai token saja
       const query = 'INSERT INTO authentications (token) VALUES (?)';
       
       db.query(query, [token], (err, result) => {
