@@ -25,6 +25,11 @@ export const getCashflowForecast = async (req, res, next) => {
         return next(err);
       }
       
+      let data30Hari = results.map(row => parseFloat(row.net_cashflow) || 0.0).reverse();
+
+      while (data30Hari.length < 30) {
+        data30Hari.unshift(0.0);
+      }
 
       try {
         // Sesuaikan sub-path endpoint-nya (misal: /api/ai/cashflow-forecast) dengan route asli di FastAPI Railway kalian jika berbeda
