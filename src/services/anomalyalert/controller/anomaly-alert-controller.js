@@ -37,7 +37,6 @@ export const getAnomalyAlert = async (req, res, next) => {
       FROM transaksi t1
       WHERE t1.id_warung = ? AND t1.jenis = 'Pengeluaran'
       ORDER BY t1.tanggal DESC
-      LIMIT 50 
     `;
 
     db.query(queryStr, [idWarungSipemilik], async (err, results) => {
