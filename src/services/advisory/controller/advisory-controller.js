@@ -60,9 +60,7 @@ export const getAIAdvisory = async (req, res, next) => {
         // Gabungkan Payload & Tembak ke Server AI Advisory Live
         try {
           const urlServerAI = 'https://umkm-bersama-production.up.railway.app/api/ai/advisory';
-          
-          console.log(`[Advisory] Mengirim paket data gabungan untuk warung: ${idWarungSipemilik}`);
-          
+                  
           const responseDariAI = await axios.post(urlServerAI, {
             data_30_hari: data30Hari,
             produk: dataProdukFormatted
@@ -71,7 +69,6 @@ export const getAIAdvisory = async (req, res, next) => {
           // Ambil output murni dari model gabungan tim AI (prioritas, status_kas, prediksi_kas, rekomendasi)
           let aiAdvisoryResult = { ...responseDariAI.data }; 
 
-          console.log("[Advisory] Berhasil mendapatkan rekomendasi dari Railway:", aiAdvisoryResult);
 
           // Kembalikan objek output yang bersih ke Front-End React
           return response(res, 200, 'Rekomendasi bisnis otomatis berhasil dirakit oleh Advisory Layer AI', aiAdvisoryResult);

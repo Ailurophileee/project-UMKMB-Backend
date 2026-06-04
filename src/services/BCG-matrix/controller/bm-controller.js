@@ -28,8 +28,6 @@ export const getBCGMatrix = async (req, res, next) => {
         return next(err);
       }
       
-      console.log("Warung yang sedang di-query BCG:", idWarungSipemilik);
-
       if (!results || results.length === 0) {
         return res.status(200).json({
           status: 'empty',
@@ -51,8 +49,6 @@ export const getBCGMatrix = async (req, res, next) => {
         // Tembak Endpoint POST AI dengan Query Parameter id_warung
         const urlServerAI = `https://umkm-bersama-production.up.railway.app/api/ai/bcg-matrix?id_warung=${idWarungSipemilik}`;
         
-        console.log("Mengirim daftar produk ke Railway AI...");
-
         const responseDariAI = await axios.post(urlServerAI, {
           produk: formatProduk
         });
@@ -73,7 +69,7 @@ export const getBCGMatrix = async (req, res, next) => {
             harga_jual: dataAsliDB ? dataAsliDB.harga_jual : 0, 
             harga_pokok: dataAsliDB ? dataAsliDB.harga_pokok : 0,
             
-            // ✅ SINKRONISASI DS: Pastikan nilai margin persen ditangkap untuk sumbu Y grafik
+            // Pastikan nilai margin persen ditangkap untuk sumbu Y grafik
             margin_pct: parseFloat(aiItem.margin_pct) || 0, 
             rekomendasi: aiItem.rekomendasi || ''
           };
@@ -82,7 +78,7 @@ export const getBCGMatrix = async (req, res, next) => {
         // Kirimkan data utuh terbungkus objek produk ke Frontend
         return response(res, 200, 'Analisis BCG Matrix berhasil', { 
           produk: produkLengkapSiapKirim,
-          // Opsional: Jika AI mengembalikan nilai median, sisipkan di sini
+          // Jika AI mengembalikan nilai median, sisipkan di sini
           median_qty: aiResultRaw.median_qty || null,
           median_margin: aiResultRaw.median_margin || null
         });        

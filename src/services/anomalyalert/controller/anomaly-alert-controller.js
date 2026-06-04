@@ -76,8 +76,7 @@ export const getAnomalyAlert = async (req, res, next) => {
 
         // Tangkap output murni array status normal/anomali + pesan peringatan dari AI
         let aiAnomalyResult = responseDariAI.data;
-
-        console.log("[Anomaly] Berhasil mendapatkan respon anomali dari Railway:", aiAnomalyResult);
+        console.log(`[Anomaly] Audit Sukses. Terproses: ${aiAnomalyResult.total_transaksi || 0}, Terdeteksi Anomali: ${aiAnomalyResult.total_anomali || 0}`);
 
         return response(res, 200, 'Analisis anomali transaksi berhasil diproses oleh AI', aiAnomalyResult);
        
