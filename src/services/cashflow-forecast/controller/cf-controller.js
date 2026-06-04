@@ -29,7 +29,9 @@ export const getCashflowForecast = async (req, res, next) => {
       try {
         // Sesuaikan sub-path endpoint-nya (misal: /api/ai/cashflow-forecast) dengan route asli di FastAPI Railway kalian jika berbeda
         const urlServerAI = 'https://umkm-bersama-production.up.railway.app/api/ai/cashflow-forecast';
-                
+        
+        console.log("Mengirim data 30 hari ke Railway untuk warung:", idWarungSipemilik);
+        
         const responseDariAI = await axios.post(urlServerAI, {
           data_30_hari: data30Hari
         });
@@ -42,6 +44,8 @@ export const getCashflowForecast = async (req, res, next) => {
         }
 
         aiResult.historis_30_hari = data30Hari;
+
+        console.log("Hasil prediksi sukses dari Railway:", aiResult);
 
         // Kembalikan objek output yang bersih ke Front-End React
         return response(res, 200, 'Prediksi cashflow berhasil digenerate oleh AI di Railway', aiResult);
