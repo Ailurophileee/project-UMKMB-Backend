@@ -4,7 +4,7 @@ import { getCashflowForecast } from '../services/cashflow-forecast/controller/cf
 import { getBCGMatrix } from '../services/BCG-matrix/controller/bm-controller.js';// Sesuaikan path controller BCG-mu
 import authenticateToken from '../middlewares/auth.js';
 import { getAIAdvisory } from '../services/advisory/controller/advisory-controller.js';
-import { getAnomalyAlert } from '../services/advisory/controller/anomalyalert/controller/anomaly-alert-controller.js';
+import { getAnomalyAlert } from '../services/anomalyalert/controller/anomaly-alert-controller.js';
 const router = express.Router();
 
 // 1. Route untuk Cashflow Forecast
