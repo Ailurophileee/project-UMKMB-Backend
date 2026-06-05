@@ -71,11 +71,15 @@ export const getAnomalyAlert = async (req, res, next) => {
           transaksi: dataTransaksiFormatted
         });
 
-        let aiAnomalyResult = { ...responseDariAI.data }; 
+        // SEKARANG: Ambil array transaksi dari DS, bungkus ke properti 'anomali'
+        const hasilModelDS = responseDariAI.data.transaksi || responseDariAI.data;
 
-        // Kembalikan objek output hasil deteksi ke Front-End React
+        let aiAnomalyResult = {
+          anomali: Array.isArray(hasilModelDS) ? hasilModelDS : []
+        }; 
+
         return response(res, 200, 'Deteksi anomali pengeluaran berhasil dianalisis oleh AI', aiAnomalyResult);
-        
+
       } catch (errorAI) {
         console.error('Koneksi ke server AI Anomaly Railway bermasalah:', errorAI.message);
         return res.status(502).json({
