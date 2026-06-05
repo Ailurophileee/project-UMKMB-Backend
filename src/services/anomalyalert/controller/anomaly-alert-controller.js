@@ -102,7 +102,7 @@ export const getAnomalyAlert = async (req, res, next) => {
           total_anomali    : listNormalized.filter(t => t.status_audit === 'ANOMALI').length,
         };
 
-        return response(res, 200, 'Deteksi anomali transaksi pengeluaran berhasil', anomalyResult);
+        return response(res, 200, 'Deteksi anomali pengeluaran berhasil', anomalyResult);
 
       } catch (errorAI) {
         console.error('Koneksi ke server AI Anomaly Railway bermasalah:', errorAI.message);
