@@ -90,6 +90,7 @@ export const getAnomalyAlert = async (req, res, next) => {
               : 'Transaksi aman dan tercatat sesuai batas wajar.'
           };
         });
+        console.log('test');
 
         // 6. Kembalikan data matang berstruktur objek properti { anomali: [...] } ke Frontend
         return response(res, 200, 'Analisis anomali transaksi berhasil diproses oleh AI', {
