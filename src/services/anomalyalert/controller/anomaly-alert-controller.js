@@ -73,7 +73,7 @@ export const getAnomalyAlert = async (req, res, next) => {
         });
 
         // 1. Ambil data mentah hasil komputasi model AI milik temanmu
-        const dataMentahAI = responseDariAI.data.anomali || responseDariAI.data; 
+        const dataMentahAI = responseDariAI.data.hasil || responseDariAI.data.anomali || responseDariAI.data;
 
         // 2. Lakukan mapping untuk memberikan label tegas 'ANOMALI' atau 'NORMAL' sesuai standar kodinganmu
         const transaksiTerklasifikasi = dataMentahAI.map((tx) => {
