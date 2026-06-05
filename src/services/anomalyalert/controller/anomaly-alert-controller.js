@@ -6,8 +6,6 @@ export const getAnomalyAlert = async (req, res, next) => {
   try {
     const idWarungSipemilik = req.user.id_warung;
 
-    // Ambil transaksi Pengeluaran 30 hari terakhir
-    // Sekaligus hitung rolling_mean_7d per kategori via self-join
     const queryAnomalyStr = `
       SELECT
         t1.id_transaksi,
@@ -38,26 +36,22 @@ export const getAnomalyAlert = async (req, res, next) => {
     db.query(queryAnomalyStr, [idWarungSipemilik], async (errQuery, resultsQuery) => {
       if (errQuery) return next(errQuery);
 
-      // Jika belum ada transaksi pengeluaran, kembalikan hasil kosong (jangan crash)
       if (!resultsQuery || resultsQuery.length === 0) {
         return response(res, 200, 'Tidak ada transaksi pengeluaran untuk dianalisis', {
-          anomalies: [],
+          anomali: [],
           pesan_peringatan: []
         });
       }
 
-      // Format payload sesuai spesifikasi API AI Anomaly Detection
       const transaksiFormatted = resultsQuery.map(row => {
-        const nominal      = parseInt(row.nominal)        || 0;
-        const rollingMean  = parseFloat(row.rolling_mean_7d) || 1; // hindari pembagian nol
-
-        // rasio_vs_baseline = seberapa besar transaksi ini dibanding rata-rata 7 hari
+        const nominal     = parseInt(row.nominal)           || 0;
+        const rollingMean = parseFloat(row.rolling_mean_7d) || 1;
         const rasioVsBaseline = parseFloat((nominal / rollingMean).toFixed(2));
 
         return {
           id_transaksi      : String(row.id_transaksi),
-          hari_dalam_minggu : parseInt(row.hari_dalam_minggu),  // 0=Senin … 6=Minggu
-          jam_encoded       : parseInt(row.jam_encoded),        // 0-23
+          hari_dalam_minggu : parseInt(row.hari_dalam_minggu),
+          jam_encoded       : parseInt(row.jam_encoded),
           kategori          : row.kategori,
           nominal           : nominal,
           rasio_vs_baseline : rasioVsBaseline,
@@ -65,7 +59,6 @@ export const getAnomalyAlert = async (req, res, next) => {
         };
       });
 
-      // Kirim ke server AI Anomaly Detection
       try {
         const urlServerAI = 'https://umkm-bersama-production.up.railway.app/api/ai/anomaly';
 
@@ -73,14 +66,57 @@ export const getAnomalyAlert = async (req, res, next) => {
           transaksi: transaksiFormatted
         });
 
-        const anomalyResult = { ...responseDariAI.data };
+        // === DEBUG: Cetak struktur asli respons AI ke terminal server ===
+        console.log('=== [ANOMALY] Raw AI Response Keys ===', Object.keys(responseDariAI.data));
+        console.log('=== [ANOMALY] Raw AI Response Sample ===', JSON.stringify(responseDariAI.data).slice(0, 500));
 
-        return response(
-          res,
-          200,
-          'Deteksi anomali transaksi pengeluaran berhasil',
-          anomalyResult
-        );
+        const rawAI = responseDariAI.data;
+
+        // Cari array transaksi dari berbagai kemungkinan key yang dikembalikan AI
+        const listMentah =
+          rawAI.hasil        ||   // kemungkinan 1
+          rawAI.results      ||   // kemungkinan 2
+          rawAI.detections   ||   // kemungkinan 3
+          rawAI.transaksi    ||   // kemungkinan 4
+          rawAI.anomali      ||   // kemungkinan 5
+          rawAI.data         ||   // kemungkinan 6
+          [];
+
+        // Normalisasi setiap item: gabungkan data DB + hasil AI, standarkan status_audit
+        const listNormalized = listMentah.map(item => {
+          // Cari data DB asli berdasarkan id_transaksi agar nominal, kategori, dll tetap ada
+          const dataDB = transaksiFormatted.find(t => t.id_transaksi === item.id_transaksi) || {};
+
+          // Tentukan status_audit: cek berbagai kemungkinan field dari AI
+          let statusAudit = 'NORMAL';
+          if (item.status_audit)  statusAudit = String(item.status_audit).toUpperCase();
+          else if (item.is_anomaly === true || item.is_anomaly === 1) statusAudit = 'ANOMALI';
+          else if (item.label === 'anomaly' || item.label === 'anomali') statusAudit = 'ANOMALI';
+          else if (item.anomaly === true || item.anomaly === 1) statusAudit = 'ANOMALI';
+
+          return {
+            // Data dari DB (dijamin ada)
+            id_transaksi      : item.id_transaksi || dataDB.id_transaksi,
+            kategori          : item.kategori     || dataDB.kategori,
+            nominal           : item.nominal      || dataDB.nominal      || 0,
+            rasio_vs_baseline : item.rasio_vs_baseline || dataDB.rasio_vs_baseline || 1,
+            rolling_mean_7d   : item.rolling_mean_7d   || dataDB.rolling_mean_7d   || 0,
+            // Status hasil AI (sudah dinormalisasi)
+            status_audit      : statusAudit,
+            // Pesan penjelasan dari AI (cek berbagai kemungkinan field)
+            pesan             : item.pesan || item.message || item.warning || item.keterangan || null,
+          };
+        });
+
+        // Susun response final yang konsisten ke FE
+        const anomalyResult = {
+          anomali           : listNormalized,
+          pesan_peringatan  : rawAI.pesan_peringatan || rawAI.warnings || rawAI.messages || [],
+          total_transaksi   : listNormalized.length,
+          total_anomali     : listNormalized.filter(t => t.status_audit === 'ANOMALI').length,
+        };
+
+        return response(res, 200, 'Deteksi anomali transaksi pengeluaran berhasil', anomalyResult);
 
       } catch (errorAI) {
         console.error('Koneksi ke server AI Anomaly Railway bermasalah:', errorAI.message);
