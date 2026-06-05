@@ -5,13 +5,24 @@ import ErrorHandler from '../middlewares/error.js';
 
 const app = express();
 
-// 1. Atur konfigurasi CORS yang aman dan fleksibel
+const allowedOrigins = [
+  'https://project-umkmb-frontend.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:5173'
+];
+
 const corsOptions = {
-  origin: 'https://project-umkmb-frontend.vercel.app',
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Akses diblokir oleh kebijakan CORS Backend Salamah!'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  optionsSuccessStatus: 200 // Memastikan status preflight mengembalikan 200 OK
+  optionsSuccessStatus: 200 
 };
 
 // 2. Pasang middleware CORS di paling atas
