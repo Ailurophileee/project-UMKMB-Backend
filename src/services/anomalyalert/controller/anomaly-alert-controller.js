@@ -1,110 +1,96 @@
-import axios from 'axios'; 
-import db from '../../../config/db.js'; 
+import axios from 'axios';
+import db from '../../../config/db.js';
 import response from '../../../utils/response.js';
 
 export const getAnomalyAlert = async (req, res, next) => {
   try {
-    // 1. Ambil ID warung dari token JWT user yang login
-    const idWarungSipemilik = req.user.id_warung; 
+    const idWarungSipemilik = req.user.id_warung;
 
-    // Query SQL untuk mengambil data pengeluaran beserta rolling mean 7 transaksi terakhir per kategori
-    const queryStr = `
+    // Ambil transaksi Pengeluaran 30 hari terakhir
+    // Sekaligus hitung rolling_mean_7d per kategori via self-join
+    const queryAnomalyStr = `
       SELECT
-        id_transaksi,
-        kategori,
-        nominal,
-        tanggal,
-        HOUR(tanggal) as jam_encoded,
-        WEEKDAY(tanggal) as hari_dalam_minggu,
-        (
-          SELECT COALESCE(AVG(t2.nominal), t1.nominal)
-          FROM transaksi t2
-          WHERE t2.id_warung = t1.id_warung 
-            AND t2.kategori = t1.kategori 
-            AND t2.jenis = 'Pengeluaran'
-            AND t2.tanggal <= t1.tanggal
-          ORDER BY t2.tanggal DESC
-          LIMIT 7
-        ) as rolling_mean_7d
+        t1.id_transaksi,
+        t1.kategori,
+        t1.nominal,
+        (DAYOFWEEK(t1.tanggal) + 5) % 7        AS hari_dalam_minggu,
+        COALESCE(HOUR(t1.jam_transaksi), 0)     AS jam_encoded,
+        COALESCE(AVG(t2.nominal), t1.nominal)   AS rolling_mean_7d
       FROM transaksi t1
-      WHERE t1.id_warung = ? AND t1.jenis = 'Pengeluaran'
-      ORDER BY t1.tanggal ASC
+      LEFT JOIN transaksi t2
+        ON  t2.id_warung  = t1.id_warung
+        AND t2.kategori   = t1.kategori
+        AND t2.jenis      = 'Pengeluaran'
+        AND t2.tanggal BETWEEN DATE_SUB(t1.tanggal, INTERVAL 6 DAY) AND t1.tanggal
+      WHERE
+        t1.id_warung = ?
+        AND t1.jenis = 'Pengeluaran'
+        AND t1.tanggal >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+      GROUP BY
+        t1.id_transaksi,
+        t1.tanggal,
+        t1.jam_transaksi,
+        t1.kategori,
+        t1.nominal
+      ORDER BY t1.tanggal DESC, t1.jam_transaksi DESC
     `;
 
-db.query(queryStr, [idWarungSipemilik], async (err, results) => {
-      if (err) return next(err);
+    db.query(queryAnomalyStr, [idWarungSipemilik], async (errQuery, resultsQuery) => {
+      if (errQuery) return next(errQuery);
 
-      if (!results || results.length === 0) {
-        return response(res, 200, 'Belum ada data transaksi pengeluaran untuk dianalisis.', { anomali: [] });
+      // Jika belum ada transaksi pengeluaran, kembalikan hasil kosong (jangan crash)
+      if (!resultsQuery || resultsQuery.length === 0) {
+        return response(res, 200, 'Tidak ada transaksi pengeluaran untuk dianalisis', {
+          anomalies: [],
+          pesan_peringatan: []
+        });
       }
-      
-      // 1. Ambil data asli dari database
-      const dataAwal = results.map(row => {
-        const nominal = parseFloat(row.nominal) || 0;
-        const rollingMean = parseFloat(row.rolling_mean_7d) || nominal; 
-        const rasioVsBaseline = rollingMean > 0 ? parseFloat((nominal / rollingMean).toFixed(2)) : 1.0;
+
+      // Format payload sesuai spesifikasi API AI Anomaly Detection
+      const transaksiFormatted = resultsQuery.map(row => {
+        const nominal      = parseInt(row.nominal)        || 0;
+        const rollingMean  = parseFloat(row.rolling_mean_7d) || 1; // hindari pembagian nol
+
+        // rasio_vs_baseline = seberapa besar transaksi ini dibanding rata-rata 7 hari
+        const rasioVsBaseline = parseFloat((nominal / rollingMean).toFixed(2));
 
         return {
-          hari_dalam_minggu: parseInt(row.hari_dalam_minggu),
-          id_transaksi: String(row.id_transaksi),
-          jam_encoded: parseInt(row.jam_encoded),
-          kategori: row.kategori || 'Lain-lain',
-          nominal: nominal,
-          rasio_vs_baseline: rasioVsBaseline,
-          rolling_mean_7d: parseFloat(rollingMean.toFixed(2))
+          id_transaksi      : String(row.id_transaksi),
+          hari_dalam_minggu : parseInt(row.hari_dalam_minggu),  // 0=Senin … 6=Minggu
+          jam_encoded       : parseInt(row.jam_encoded),        // 0-23
+          kategori          : row.kategori,
+          nominal           : nominal,
+          rasio_vs_baseline : rasioVsBaseline,
+          rolling_mean_7d   : parseFloat(rollingMean.toFixed(2))
         };
       });
 
-      // 2. SINKRONISASI INDEKS: Balik urutan data (dari lampau ke terbaru) sebelum dikirim ke AI 
-      // agar posisi indeks [0, 1, 2...] pas dengan prapemrosesan model Python tim DS
-      const transaksiFormatted = [...dataAwal].reverse();
-
+      // Kirim ke server AI Anomaly Detection
       try {
         const urlServerAI = 'https://umkm-bersama-production.up.railway.app/api/ai/anomaly';
 
-        // 3. Tembak Server AI dengan data yang urutannya sudah disinkronkan
         const responseDariAI = await axios.post(urlServerAI, {
           transaksi: transaksiFormatted
         });
 
-        const listIsAnomaly = responseDariAI.data.is_anomaly || [];
+        const anomalyResult = { ...responseDariAI.data };
 
-        // 4. Petakan hasil analisis menggunakan dataFormatted yang sinkron dengan indeks AI
-        const hasilPemetaanAI = transaksiFormatted.map((dataAsli, index) => {
-          const nilaiIsAnomaly = listIsAnomaly[index];
-          
-          // Deteksi mutlak: AI mengembalikan angka -1 atau string '-1' untuk ANOMALI
-          const isAnomaly = nilaiIsAnomaly === -1 || String(nilaiIsAnomaly) === '-1';
+        return response(
+          res,
+          200,
+          'Deteksi anomali transaksi pengeluaran berhasil dianalisis',
+          anomalyResult
+        );
 
-          return {
-            id_transaksi: dataAsli.id_transaksi,
-            kategori: dataAsli.kategori,
-            nominal: dataAsli.nominal,
-            rolling_mean_7d: dataAsli.rolling_mean_7d,
-            baseline_rata_rata: `${(dataAsli.rasio_vs_baseline * 100).toFixed(1)}%`,
-            status_audit: isAnomaly ? 'ANOMALI' : 'NORMAL',
-            hasil_analisis: isAnomaly 
-              ? '⚠️ Terdeteksi pengeluaran melonjak tajam dari batas wajar harian!' 
-              : 'Transaksi aman dan tercatat sesuai batas wajar.'
-          };
-        });
-
-        // 5. Kembalikan urutan data ke posisi semula (terbaru di atas) agar tampilan tabel UI tetap rapi
-        const transaksiTerklasifikasi = [...hasilPemetaanAI].reverse();
-
-        // 6. Lempar objek bersih { anomali: [...] } ke Frontend
-        return response(res, 200, 'Analisis anomali transaksi berhasil diproses oleh AI', {
-          anomali: transaksiTerklasifikasi
-        });
-       
       } catch (errorAI) {
-        console.error('Error dari AI Anomaly Service:', errorAI.message);
+        console.error('Koneksi ke server AI Anomaly Railway bermasalah:', errorAI.message);
         return res.status(502).json({
-          status: 'fail',
-          message: 'Gagal mendapatkan analisis dari server AI.'
+          status  : 'fail',
+          message : 'Gagal mendapatkan analisis dari Anomaly Detection AI Railway. Pastikan layanan di cloud sudah aktif.'
         });
       }
     });
+
   } catch (error) {
     next(error);
   }
