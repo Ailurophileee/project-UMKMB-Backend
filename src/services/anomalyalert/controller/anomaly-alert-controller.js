@@ -78,7 +78,7 @@ export const getAnomalyAlert = async (req, res, next) => {
         return response(
           res,
           200,
-          'Deteksi anomali transaksi pengeluaran berhasil dianalisis',
+          'Deteksi anomali transaksi pengeluaran berhasil',
           anomalyResult
         );
 
