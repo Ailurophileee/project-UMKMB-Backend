@@ -14,24 +14,24 @@ export const getAnomalyAlert = async (req, res, next) => {
         t1.tanggal,
         t1.kategori,
         t1.nominal,
-        -- Mengambil jam dari tanggal/waktu transaksi
-        HOUR(t1.tanggal) AS jam_encoded,
+        -- FIX: Mengambil jam langsung dari kolom jam_transaksi (bertipe TIME)
+        HOUR(t1.jam_transaksi) AS jam_encoded,
         -- Mengambil day of week standar Python (0=Senin, 6=Minggu)
-        -- Di MySQL, WEEKDAY() secara default mengembalikan 0=Senin s/d 6=Minggu
         WEEKDAY(t1.tanggal) AS hari_dalam_minggu,
-        -- Subquery untuk menghitung rolling mean 7 hari ke belakang (berdasarkan tanggal transaksi terkait)
+        -- Subquery untuk menghitung rolling mean 7 hari ke belakang per kategori
         (
           SELECT COALESCE(AVG(t2.nominal), 0)
           FROM transaksi t2
           WHERE t2.id_warung = t1.id_warung
-            AND t2.jenis = 'Pengeluaran'
+            AND (t2.jenis = 'Pengeluaran' OR t2.jenis = 'pengeluaran')
             AND t2.kategori = t1.kategori
             AND t2.tanggal BETWEEN DATE_SUB(t1.tanggal, INTERVAL 7 DAY) AND t1.tanggal
         ) AS rolling_mean_7d
       FROM transaksi t1
-      WHERE t1.id_warung = ? AND t1.jenis = 'Pengeluaran'
-      ORDER BY t1.tanggal DESC
-      LIMIT 10 -- Kamu bisa sesuaikan limitnya (misal: 10 transaksi pengeluaran terakhir)
+      WHERE t1.id_warung = ? 
+        AND (t1.jenis = 'Pengeluaran' OR t1.jenis = 'pengeluaran')
+      ORDER BY t1.tanggal DESC, t1.jam_transaksi DESC
+      LIMIT 50
     `;
 
     db.query(queryAnomalyStr, [idWarungSipemilik], async (errAnomaly, resultsAnomaly) => {
