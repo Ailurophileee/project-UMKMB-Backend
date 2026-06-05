@@ -73,13 +73,11 @@ export const getAnomalyAlert = async (req, res, next) => {
           // Cari data pendukung dari transaksiFormatted kita berdasarkan id_transaksi
           const dataAsli = transaksiFormatted.find(t => String(t.id_transaksi) === String(tx.id_transaksi));
           
-          // SINKRONISASI LOGIKA ACUAN DOKUMENTASI TIM AI:
-          // Kita pakai 'tx.is_anomaly' langsung (BOOLEAN) sesuai spesifikasi model Isolation Forest mereka!
-          // Jika tx.is_anomaly tidak dikirim balik, baru kita gunakan fallback score (< -0.1)
-          const isAnomaly = tx.is_anomaly !== undefined 
-            ? tx.is_anomaly 
-            : (tx.anomaly_score !== undefined ? tx.anomaly_score < -0.1 : false);
-
+          const isAnomaly = 
+            tx.is_anomaly === true || 
+            tx.is_anomaly === 1 || 
+            String(tx.is_anomaly).toLowerCase() === 'true' ||
+            (tx.anomaly_score !== undefined && tx.anomaly_score < -0.1);
           // Ambil nilai rasio_vs_baseline dari AI, jika kosong ambil dari hitungan aman dataAsli kita
           const rasioFinal = tx.rasio_vs_baseline || (dataAsli ? dataAsli.rasio_vs_baseline : 1);
 
@@ -87,8 +85,6 @@ export const getAnomalyAlert = async (req, res, next) => {
             id_transaksi: String(tx.id_transaksi),
             kategori: tx.kategori || (dataAsli ? dataAsli.kategori : 'Operasional'),
             nominal: parseFloat(tx.nominal) || (dataAsli ? dataAsli.nominal : 0),
-            
-            // Perbaikan persen: Mengubah angka rasio desimal menjadi string persentase dinamis yang valid
             baseline_rata_rata: `${(rasioFinal * 100).toFixed(1)}%`,
             
             // Klasifikasi tegas untuk UI Laptop Salamah
