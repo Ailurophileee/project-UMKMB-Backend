@@ -7,7 +7,7 @@ const app = express();
 
 // 1. Atur konfigurasi CORS yang aman dan fleksibel
 const corsOptions = {
-  origin: 'https://project-umkmb-frontend.vercel.app', // atau gunakan '*' jika untuk uji coba
+  origin: 'https://project-umkmb-frontend.vercel.app',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -21,6 +21,13 @@ app.use(express.json());
 
 // 3. Masukkan router utama kamu
 app.use(routes);
+
+app.get('/', (req, res) => {
+  res.json({
+    message: "UMKM Bersama Main Backend API berjalan dengan sukses! 🚀",
+    status: "OK"
+  });
+});
 
 app.use(ErrorHandler);
 
