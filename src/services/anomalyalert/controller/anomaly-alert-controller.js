@@ -28,7 +28,7 @@ export const getAnomalyAlert = async (req, res, next) => {
         ) as rolling_mean_7d
       FROM transaksi t1
       WHERE t1.id_warung = ? AND t1.jenis = 'Pengeluaran'
-      ORDER BY t1.tanggal DESC
+      ORDER BY t1.tanggal
     `;
 
 db.query(queryStr, [idWarungSipemilik], async (err, results) => {
