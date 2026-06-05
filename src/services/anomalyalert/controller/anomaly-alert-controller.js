@@ -47,7 +47,6 @@ export const getAnomalyAlert = async (req, res, next) => {
         const nominal     = parseInt(row.nominal)           || 0;
         const rollingMean = parseFloat(row.rolling_mean_7d) || 1;
         const rasioVsBaseline = parseFloat((nominal / rollingMean).toFixed(2));
-
         return {
           id_transaksi      : String(row.id_transaksi),
           hari_dalam_minggu : parseInt(row.hari_dalam_minggu),
@@ -61,59 +60,46 @@ export const getAnomalyAlert = async (req, res, next) => {
 
       try {
         const urlServerAI = 'https://umkm-bersama-production.up.railway.app/api/ai/anomaly';
-
-        const responseDariAI = await axios.post(urlServerAI, {
-          transaksi: transaksiFormatted
-        });
-
-        // === DEBUG: Cetak struktur asli respons AI ke terminal server ===
-        console.log('=== [ANOMALY] Raw AI Response Keys ===', Object.keys(responseDariAI.data));
-        console.log('=== [ANOMALY] Raw AI Response Sample ===', JSON.stringify(responseDariAI.data).slice(0, 500));
+        const responseDariAI = await axios.post(urlServerAI, { transaksi: transaksiFormatted });
 
         const rawAI = responseDariAI.data;
 
-        // Cari array transaksi dari berbagai kemungkinan key yang dikembalikan AI
-        const listMentah =
-          rawAI.hasil        ||   // kemungkinan 1
-          rawAI.results      ||   // kemungkinan 2
-          rawAI.detections   ||   // kemungkinan 3
-          rawAI.transaksi    ||   // kemungkinan 4
-          rawAI.anomali      ||   // kemungkinan 5
-          rawAI.data         ||   // kemungkinan 6
-          [];
+        // Ambil list transaksi — AI mengembalikan key 'hasil' (sudah dikonfirmasi dari log)
+        const listMentah = rawAI.hasil || rawAI.results || rawAI.detections || rawAI.transaksi || rawAI.anomali || rawAI.data || [];
 
-        // Normalisasi setiap item: gabungkan data DB + hasil AI, standarkan status_audit
         const listNormalized = listMentah.map(item => {
-          // Cari data DB asli berdasarkan id_transaksi agar nominal, kategori, dll tetap ada
+          // Merge dengan data DB agar nominal, rasio, rolling_mean tetap tersedia
           const dataDB = transaksiFormatted.find(t => t.id_transaksi === item.id_transaksi) || {};
 
-          // Tentukan status_audit: cek berbagai kemungkinan field dari AI
+          // PENTING: AI mengembalikan is_anomaly sebagai INTEGER (0 atau 1), bukan boolean
+          // Gunakan Number() agar aman untuk semua kemungkinan tipe
           let statusAudit = 'NORMAL';
-          if (item.status_audit)  statusAudit = String(item.status_audit).toUpperCase();
-          else if (item.is_anomaly === true || item.is_anomaly === 1) statusAudit = 'ANOMALI';
-          else if (item.label === 'anomaly' || item.label === 'anomali') statusAudit = 'ANOMALI';
-          else if (item.anomaly === true || item.anomaly === 1) statusAudit = 'ANOMALI';
+          if (item.status_audit) {
+            statusAudit = String(item.status_audit).toUpperCase();
+          } else if (Number(item.is_anomaly) === 1 || Number(item.anomaly) === 1) {
+            statusAudit = 'ANOMALI';
+          } else if (item.label === 'anomaly' || item.label === 'anomali') {
+            statusAudit = 'ANOMALI';
+          }
 
           return {
-            // Data dari DB (dijamin ada)
-            id_transaksi      : item.id_transaksi || dataDB.id_transaksi,
-            kategori          : item.kategori     || dataDB.kategori,
-            nominal           : item.nominal      || dataDB.nominal      || 0,
+            id_transaksi      : item.id_transaksi      || dataDB.id_transaksi,
+            kategori          : item.kategori          || dataDB.kategori,
+            nominal           : item.nominal           || dataDB.nominal           || 0,
             rasio_vs_baseline : item.rasio_vs_baseline || dataDB.rasio_vs_baseline || 1,
             rolling_mean_7d   : item.rolling_mean_7d   || dataDB.rolling_mean_7d   || 0,
-            // Status hasil AI (sudah dinormalisasi)
+            anomaly_score     : item.anomaly_score     || null,
             status_audit      : statusAudit,
-            // Pesan penjelasan dari AI (cek berbagai kemungkinan field)
-            pesan             : item.pesan || item.message || item.warning || item.keterangan || null,
+            // AI memakai field 'pesan_anomali' (sudah dikonfirmasi dari log)
+            pesan             : item.pesan_anomali || item.pesan || item.message || item.warning || null,
           };
         });
 
-        // Susun response final yang konsisten ke FE
         const anomalyResult = {
-          anomali           : listNormalized,
-          pesan_peringatan  : rawAI.pesan_peringatan || rawAI.warnings || rawAI.messages || [],
-          total_transaksi   : listNormalized.length,
-          total_anomali     : listNormalized.filter(t => t.status_audit === 'ANOMALI').length,
+          anomali          : listNormalized,
+          pesan_peringatan : rawAI.pesan_peringatan || rawAI.warnings || [],
+          total_transaksi  : listNormalized.length,
+          total_anomali    : listNormalized.filter(t => t.status_audit === 'ANOMALI').length,
         };
 
         return response(res, 200, 'Deteksi anomali transaksi pengeluaran berhasil', anomalyResult);
