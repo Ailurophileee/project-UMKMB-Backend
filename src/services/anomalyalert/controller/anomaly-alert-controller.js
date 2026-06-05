@@ -73,11 +73,11 @@ export const getAnomalyAlert = async (req, res, next) => {
           // Cari data pendukung dari transaksiFormatted kita berdasarkan id_transaksi
           const dataAsli = transaksiFormatted.find(t => String(t.id_transaksi) === String(tx.id_transaksi));
           
-          const isAnomaly = 
+         const isAnomaly = 
+            tx.is_anomaly === -1 || 
             tx.is_anomaly === true || 
-            tx.is_anomaly === 1 || 
-            String(tx.is_anomaly).toLowerCase() === 'true' ||
-            (tx.anomaly_score !== undefined && tx.anomaly_score < -0.1);
+            String(tx.is_anomaly) === '-1' ||
+            (tx.anomaly_score !== undefined && tx.anomaly_score < 0);
           // Ambil nilai rasio_vs_baseline dari AI, jika kosong ambil dari hitungan aman dataAsli kita
           const rasioFinal = tx.rasio_vs_baseline || (dataAsli ? dataAsli.rasio_vs_baseline : 1);
 
