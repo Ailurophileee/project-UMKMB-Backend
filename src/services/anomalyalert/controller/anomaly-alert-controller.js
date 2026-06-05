@@ -4,18 +4,10 @@ import response from '../../../utils/response.js';
 
 export const getAnomalyAlert = async (req, res, next) => {
   try {
-    // Membaca ID warung milik user yang sedang login dari muatan token JWT
+    // 1. Ambil ID warung dari token JWT user yang login
     const idWarungSipemilik = req.user.id_warung; 
 
-    //hari_dalam_minggu = tanggal.dt.dayofweek (0=Senin, 6=Minggu)
-    //id_transaksi
-    //jam_encoded = jam_transaksi.hour (0-23)
-    //kategori
-    //nominal
-    //rasio_vs_baseline
-    // -> Rolling mean 7 hari per kategori per warung sebagai baseline
-    // -> Rasio nominal terhadap rolling mean (seberapa jauh dari baseline)
-    //rolling_mean_7d = nominal.rolling(7).mean() per kategori
+    // Query SQL asli andalanmu untuk menarik riwayat pengeluaran
     const queryStr = `
       SELECT
         id_transaksi,
@@ -46,46 +38,60 @@ export const getAnomalyAlert = async (req, res, next) => {
         return response(res, 200, 'Belum ada data transaksi pengeluaran untuk dianalisis.', { anomali: [] });
       }
       
-      //format dan hitung rasio terhadap baseline sesuai keinginan TIM AI
+      // 2. Format data input agar MATCH 100% dengan JSON Example Request tim AI
       const transaksiFormatted = results.map(row => {
         const nominal = parseFloat(row.nominal) || 0;
-        const rollingMean = parseFloat(row.rolling_mean_7d) || nominal; // fallback ke nominal sendiri jika data < 7
-        
-        // Rasio nominal terhadap rolling mean (seberapa jauh dari baseline)
+        const rollingMean = parseFloat(row.rolling_mean_7d) || nominal; 
         const rasioVsBaseline = rollingMean > 0 ? parseFloat((nominal / rollingMean).toFixed(2)) : 1.0;
 
         return {
+          hari_dalam_minggu: parseInt(row.hari_dalam_minggu),
           id_transaksi: String(row.id_transaksi),
+          jam_encoded: parseInt(row.jam_encoded),
           kategori: row.kategori || 'Lain-lain',
           nominal: nominal,
-          hari_dalam_minggu: parseInt(row.hari_dalam_minggu),
-          jam_encoded: parseInt(row.jam_encoded),
-          rolling_mean_7d: parseFloat(rollingMean.toFixed(2)),
-          rasio_vs_baseline: rasioVsBaseline
+          rasio_vs_baseline: rasioVsBaseline,
+          rolling_mean_7d: parseFloat(rollingMean.toFixed(2))
         };
       });
 
       try {
         const urlServerAI = 'https://umkm-bersama-production.up.railway.app/api/ai/anomaly';
 
+        // 3. Tembak Server AI dengan body request sesuai dokumentasi
         const responseDariAI = await axios.post(urlServerAI, {
           transaksi: transaksiFormatted
         });
 
-        // 1. Ambil data mentah hasil komputasi model AI milik temanmu
+        // Tangkap respon utama dari AI
         const dataMentahAI = responseDariAI.data.hasil || responseDariAI.data.anomali || responseDariAI.data;
+        const arrayValidAI = Array.isArray(dataMentahAI) ? dataMentahAI : [];
 
-        // 2. Lakukan mapping untuk memberikan label tegas 'ANOMALI' atau 'NORMAL' sesuai standar kodinganmu
-        const transaksiTerklasifikasi = dataMentahAI.map((tx) => {
-          // KUNCI UTAMA: Jika anomaly_score NEGATIF (< 0), dia WAJIB menyandang status ANOMALI!
-          const isAnomaly = tx.anomaly_score < 0;
+        // 4. Mapping & Pemetaan Hasil berdasarkan Data Dictionary AI
+        const transaksiTerklasifikasi = arrayValidAI.map((tx) => {
+          
+          // Cari data pendukung dari transaksiFormatted kita berdasarkan id_transaksi
+          const dataAsli = transaksiFormatted.find(t => String(t.id_transaksi) === String(tx.id_transaksi));
+          
+          // SINKRONISASI LOGIKA ACUAN DOKUMENTASI TIM AI:
+          // Kita pakai 'tx.is_anomaly' langsung (BOOLEAN) sesuai spesifikasi model Isolation Forest mereka!
+          // Jika tx.is_anomaly tidak dikirim balik, baru kita gunakan fallback score (< -0.1)
+          const isAnomaly = tx.is_anomaly !== undefined 
+            ? tx.is_anomaly 
+            : (tx.anomaly_score !== undefined ? tx.anomaly_score < -0.1 : false);
+
+          // Ambil nilai rasio_vs_baseline dari AI, jika kosong ambil dari hitungan aman dataAsli kita
+          const rasioFinal = tx.rasio_vs_baseline || (dataAsli ? dataAsli.rasio_vs_baseline : 1);
 
           return {
-            id_transaksi: tx.id_transaksi,
-            kategori: tx.kategori || 'Operasional',
-            nominal: tx.nominal,
-            // Format angka desimal agar cantik di UI laptopmu
-            baseline_rata_rata: `${((tx.rasio_vs_baseline || 1) * 100).toFixed(1)}%`,
+            id_transaksi: String(tx.id_transaksi),
+            kategori: tx.kategori || (dataAsli ? dataAsli.kategori : 'Operasional'),
+            nominal: parseFloat(tx.nominal) || (dataAsli ? dataAsli.nominal : 0),
+            
+            // Perbaikan persen: Mengubah angka rasio desimal menjadi string persentase dinamis yang valid
+            baseline_rata_rata: `${(rasioFinal * 100).toFixed(1)}%`,
+            
+            // Klasifikasi tegas untuk UI Laptop Salamah
             status_audit: isAnomaly ? 'ANOMALI' : 'NORMAL',
             hasil_analisis: isAnomaly 
               ? 'Terdeteksi pengeluaran melonjak tidak wajar di luar batas baseline mingguan!' 
@@ -93,7 +99,7 @@ export const getAnomalyAlert = async (req, res, next) => {
           };
         });
 
-        // 3. Kembalikan data yang sudah matang dan terklasifikasi ke Frontend React
+        // 5. Lempar data matang, rapi, dan anti-error ke Frontend React
         return response(res, 200, 'Analisis anomali transaksi berhasil diproses oleh AI', {
           anomali: transaksiTerklasifikasi
         });
@@ -102,7 +108,7 @@ export const getAnomalyAlert = async (req, res, next) => {
         console.error('Error dari AI Service:', errorAI.message);
         return res.status(502).json({
           status: 'fail',
-          message: 'Gagal mendapatkan analisis dari server AI Railway. Pastikan layanan di cloud sudah aktif.'
+          message: 'Gagal mendapatkan analisis dari server AI. Pastikan layanan cloud tim AI sudah aktif.'
         });
       }
     });
