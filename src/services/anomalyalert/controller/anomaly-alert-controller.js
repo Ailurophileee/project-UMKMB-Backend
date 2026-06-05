@@ -68,15 +68,38 @@ export const getAnomalyAlert = async (req, res, next) => {
       try {
         const urlServerAI = 'https://umkm-bersama-production.up.railway.app/api/ai/anomaly';
 
-
         const responseDariAI = await axios.post(urlServerAI, {
           transaksi: transaksiFormatted
         });
 
-        let aiAnomalyResult = responseDariAI.data;
-        return response(res, 200, 'Analisis anomali transaksi berhasil diproses oleh AI', aiAnomalyResult);
+        // 1. Ambil data mentah hasil komputasi model AI milik temanmu
+        const dataMentahAI = responseDariAI.data.anomali || responseDariAI.data; 
+
+        // 2. Lakukan mapping untuk memberikan label tegas 'ANOMALI' atau 'NORMAL' sesuai standar kodinganmu
+        const transaksiTerklasifikasi = dataMentahAI.map((tx) => {
+          // KUNCI UTAMA: Jika anomaly_score NEGATIF (< 0), dia WAJIB menyandang status ANOMALI!
+          const isAnomaly = tx.anomaly_score < 0;
+
+          return {
+            id_transaksi: tx.id_transaksi,
+            kategori: tx.kategori || 'Operasional',
+            nominal: tx.nominal,
+            // Format angka desimal agar cantik di UI laptopmu
+            baseline_rata_rata: `${((tx.rasio_vs_baseline || 1) * 100).toFixed(1)}%`,
+            status_audit: isAnomaly ? 'ANOMALI' : 'NORMAL',
+            hasil_analisis: isAnomaly 
+              ? 'Terdeteksi pengeluaran melonjak tidak wajar di luar batas baseline mingguan!' 
+              : 'Transaksi aman dan tercatat sesuai batas wajar.'
+          };
+        });
+
+        // 3. Kembalikan data yang sudah matang dan terklasifikasi ke Frontend React
+        return response(res, 200, 'Analisis anomali transaksi berhasil diproses oleh AI', {
+          anomali: transaksiTerklasifikasi
+        });
        
       } catch (errorAI) {
+        console.error('Error dari AI Service:', errorAI.message);
         return res.status(502).json({
           status: 'fail',
           message: 'Gagal mendapatkan analisis dari server AI Railway. Pastikan layanan di cloud sudah aktif.'
